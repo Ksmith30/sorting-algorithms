@@ -11,10 +11,10 @@
 using namespace std;
 const int SIZE = 20;
 
-template <typename T>
+template <class T>
 bool loadFile(string &filename, T data[])
 {
-    ifstream din(filename.c_str());
+    ifstream din(("/Users/kyle/Downloads/unsorted.txt" + filename).c_str());
     if (din.fail())
         return false;
     for (int i = 0; i < SIZE; i++)
@@ -23,7 +23,7 @@ bool loadFile(string &filename, T data[])
     din.close();
 }
 
-template <typename T>
+template <class T>
 void partition(T data[], int low, int high, int &mid)
 {
     // Select pivot value
@@ -52,11 +52,76 @@ void partition(T data[], int low, int high, int &mid)
     data[mid] = pivot;
 }
 
-template <typename T>
-void partition3(T data[], int low, int high, int &mid)
+template <class T>
+void quicksort(T data[], int low, int high)
+{
+    // Check terminating condition
+    if (low < high)
+    {
+        // Partition data into two parts
+        int mid = 0;
+        partition(data, low, high, mid);
+
+        // Recursive calls to sort array
+        quicksort(data, low, mid - 1);
+        quicksort(data, mid + 1, high);
+    }
+}
+
+template <class T>
+void partition3(T array[], int low, int high, int &i, int &j)
+{
+    // To handle 2 elements
+    if (high - low <= 1)
+    {
+        if (array[high] < array[low])
+            swap(array[high], array[low]);
+        i = low;
+        j = high;
+        return;
+    }
+ 
+    int mid = low;
+    T pivot = array[high];
+    while (mid <= high)
+    {
+        if (array[mid] < pivot)
+            swap(array[low++], array[mid++]);
+        else if (array[mid] == pivot)
+            mid++;
+        else if (array[mid] > pivot)
+            swap(array[mid], array[high--]);
+    }
+ 
+    //update i and j
+    i = low-1;
+    j = mid;
+}
+
+template <class T>
+void quicksort3(T data[], int low, int high)
+{
+    // Check terminating condition
+    if (low < high)
+    {
+        // Partition data into two parts
+        int i, j;
+        partition3(data, low, high, i, j);
+        
+        // Recursive calls to sort array
+        quicksort3(data, low, i);
+        quicksort3(data, j, high);
+    }
+}
+
+template <class T>
+void medianPartition(T data[], int low, int high, int &mid)
 {
     // Select pivot value
-    T pivot = data[high];
+    mid = (high - low) / 2;
+    int median = max(min(low, mid), min(max(low, mid), high));
+    T pivot = data[median];
+        
     int left = low;
     int right = high;
     
@@ -81,39 +146,46 @@ void partition3(T data[], int low, int high, int &mid)
     data[mid] = pivot;
 }
 
-template <typename T>
-void quicksort(T data[], int low, int high)
+template <class T>
+void medianQuicksort(T data[], int low, int high)
 {
     // Check terminating condition
     if (low < high)
     {
         // Partition data into two parts
         int mid = 0;
-        partition(data, low, high, mid);
-        
+        medianPartition(data, low, high, mid);
+
         // Recursive calls to sort array
-        quicksort(data, low, mid - 1);
-        quicksort(data, mid + 1, high);
+        medianQuicksort(data, low, mid - 1);
+        medianQuicksort(data, mid + 1, high);
     }
 }
 
-template <typename T>
-void quicksort3(T data[], int low, int high)
+template<class T>
+void insertionSort(T data[], int low, int high)
 {
-    // Check terminating condition
-    if (low < high)
+    // Insert each element of unsorted list into sorted list
+    for (int unsorted = low + 1; unsorted <= high; unsorted++)
     {
-        // Partition data into two parts
-        int mid = 0;
-        partition3(data, low, high, mid);
-        
-        // Recursive calls to sort array
-        quicksort3(data, low, mid - 1);
-        quicksort3(data, mid + 1, high);
+        // Select unsorted value to be inserted
+        T value = data[unsorted];
+        int posn  = unsorted;
+
+        // Make room for new data value
+        while ((posn > 0) && (data[posn - 1] > value))
+        {
+            data[posn] = data[posn - 1];
+            posn--;
+        }
+
+        // Put new value into array
+        data[posn] = value;
     }
 }
 
-void print(string data[])
+template <class T>
+void print(T data[])
 {
     for (int i = 0; i < SIZE; i++)
         cout << data[i] << ' ';
@@ -135,6 +207,7 @@ int main()
         return 1;
     }
     print(data);
+    
     //Get Test Type
     cout << "Test Types: " << endl
             << "(1) Baseline" << endl
@@ -158,6 +231,10 @@ int main()
     {
         case 1: quicksort(data, low, high); 
         case 2: quicksort3(data, low, high);
+        case 3: medianQuicksort(data, low, high);
+        case 4: insertionSort(data, low, high);
+        case 5: ;
+        
     }
     clock_t end = clock();
     double total = double(end - start) / CLOCKS_PER_SEC;
